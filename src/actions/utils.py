@@ -1,0 +1,2 @@
+class MalformedAction(Exception):
+    pass
