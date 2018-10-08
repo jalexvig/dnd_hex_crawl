@@ -1,10 +1,15 @@
 import random
+from typing import List
+
+import sqlalchemy
 from collections import Counter
 
 import numpy as np
 import pandas as pd
 from sqlalchemy import Column, Integer, ForeignKey, String
 from sqlalchemy.orm import relationship
+
+from src.models.character import Character
 
 from src.models import Base, Monster
 from src.stats import difficulty_dict, monster_cr_xp
@@ -30,7 +35,18 @@ class Encounter(Base):
         'polymorphic_on': type,
     }
 
-    def handle(self, session, characters):
+    def handle(self,
+               session: sqlalchemy.orm.Session,
+               characters: List[Character]):
+        """
+        Process this encounter and print relevant information to display.
+        Args:
+            session:
+            characters:
+
+        Returns:
+
+        """
 
         raise NotImplementedError
 
@@ -64,7 +80,9 @@ class EncounterCombat(Encounter):
         'polymorphic_identity': 'encounters_combat',
     }
 
-    def handle(self, session, characters):
+    def handle(self,
+               session,
+               characters):
 
         if self.terrain:
             monsters = session.query(Monster).filter(getattr(Monster, self.terrain)).all()
@@ -111,7 +129,20 @@ class EncounterCombat(Encounter):
             print(monster.description)
 
 
-def pdf_norm(data, u, s):
+def pdf_norm(data: pd.DataFrame,
+             u: float,
+             s: float):
+    """
+    Calculate the probability density for values.
+
+    Args:
+        data: 2-d data (e.g. DataFrame)
+        u: Mean.
+        s: Standard deviation.
+
+    Returns:
+
+    """
 
     z = (data - u) / s
 

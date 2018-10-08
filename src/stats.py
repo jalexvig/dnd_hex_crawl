@@ -1,3 +1,5 @@
+# This stuff comes from the DMG
+
 difficulty_dict = {
     1: 50,
     2: 100,

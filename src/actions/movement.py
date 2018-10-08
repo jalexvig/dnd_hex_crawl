@@ -1,9 +1,21 @@
+from typing import List
+
+import sqlalchemy
+
 from src import models
-from src.utils import prompt_bool, get_area, MalformedBoolException
-from src.actions.groups import _merge
+from src.models import Character
+from src.utils import prompt_bool, find_area, MalformedBoolException, CharacterGroups
+from src.actions.groups import _merge_groups
 
 
-def join_groups(character_groups, idx_group: int, area: models.Area):
+def _join_groups(character_groups: CharacterGroups,
+                 idx_group: int,
+                 area: models.Area) -> int:
+    """
+    Join two collacted groups.
+
+    Returns: Index of new combined group.
+    """
 
     idxs_same = []
 
@@ -25,20 +37,25 @@ def join_groups(character_groups, idx_group: int, area: models.Area):
             pass
         else:
             if prompt_merge_bool:
-                character_groups, idx_group = _merge(character_groups, idx_group)
+                character_groups, idx_group = _merge_groups(character_groups, idx_group)
 
         return idx_group
 
     return idx_group
 
 
-def move(session, character_groups, idx_group):
+def move(session: sqlalchemy.orm.Session,
+         character_groups: CharacterGroups,
+         idx_group: int):
+    """
+    Move a group to a new area.
+    """
 
     area_str = input('Which area? ')
 
-    area = get_area(session, area_str)
+    area = find_area(session, area_str)
 
-    idx_group_new = join_groups(character_groups, idx_group, area)
+    idx_group_new = _join_groups(character_groups, idx_group, area)
 
     characters = character_groups[idx_group_new]
 
@@ -48,7 +65,12 @@ def move(session, character_groups, idx_group):
         area.process_encounter(session, characters)
 
 
-def process_triggers(session, characters, area):
+def process_triggers(session: sqlalchemy.orm.Session,
+                     characters: List[Character],
+                     area: models.Area):
+    """
+    Find triggers for an area, print them, and potentially resolve them.
+    """
 
     triggers = session.query(models.Trigger).filter(
         (~models.Trigger.resolved) &

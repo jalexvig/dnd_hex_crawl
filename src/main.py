@@ -1,6 +1,8 @@
+import sqlalchemy.orm
+
 import src.actions.utils
 from src import actions
-from src.utils import get_area, AreaNotFoundException
+from src.utils import find_area, AreaNotFoundException, CharacterGroups
 from src.initialize import init
 
 
@@ -11,7 +13,11 @@ def main():
     loop(session, character_groups)
 
 
-def loop(session, character_groups):
+def loop(session: sqlalchemy.orm.Session,
+         character_groups: CharacterGroups):
+    """
+    Start REPL.
+    """
 
     idx_group = 0
 
@@ -33,7 +39,7 @@ def loop(session, character_groups):
             _, *area_name_list = action.split(maxsplit=1)
             if area_name_list:
                 try:
-                    area = get_area(session, area_name_list[0])
+                    area = find_area(session, area_name_list[0])
                 except AreaNotFoundException:
                     print('Area not found. Try again.')
                     continue

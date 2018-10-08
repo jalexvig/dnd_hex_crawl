@@ -2,6 +2,9 @@ from src import models
 
 
 def info(area: models.Area):
+    """
+    Print info for an area.
+    """
 
     indent = '  '
 

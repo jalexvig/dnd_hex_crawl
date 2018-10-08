@@ -1,14 +1,21 @@
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+import sqlalchemy
+from typing import Tuple, List
 
 from src import models
 
 import itertools
 
-from src.utils import prompt_bool, prompt_choices, MalformedInputException, MalformedBoolException
+from src.utils import prompt_bool, prompt_choices, MalformedInputException, MalformedBoolException, CharacterGroups
 
 
-def init():
+def init() -> Tuple[CharacterGroups, sqlalchemy.orm.Session]:
+    """
+    Initialize database and characters.
+
+    Returns: Character groups and a session to interact with the database.
+    """
 
     session = init_db()
 
@@ -22,7 +29,10 @@ def init():
     return character_groups, session
 
 
-def init_db():
+def init_db() -> sqlalchemy.orm.Session:
+    """
+    Initialize the database.
+    """
 
     engine = create_engine('sqlite:////Users/alex/projects/dnd_hex_crawl/db', echo=False)
 
@@ -33,7 +43,12 @@ def init_db():
     return session
 
 
-def init_characters(session):
+def init_characters(session: sqlalchemy.orm.Session) -> CharacterGroups:
+    """
+    Initialize the party's characters.
+
+    Returns: Character groups.
+    """
 
     characters = []
 
@@ -80,14 +95,18 @@ def init_characters(session):
     return character_groups
 
 
-def _select_area(session, areas_chosen):
+def _select_area(session: sqlalchemy.orm.Session,
+                 areas_chosen: List[models.Area]) -> models.Area:
+    """
+    Choose an area (new or from existing).
+    """
 
     if not areas_chosen:
         return _select_new_area(session)
 
     idx = prompt_choices(areas_chosen,
                          lambda i, char: '  {} - {} ({})'.format(i, area.name, area.full_name()),
-                         choices_suffix='\n  {} - {}\n'.format('New area', len(areas_chosen)))
+                         suffix_choices='\n  {} - {}\n'.format('New area', len(areas_chosen)))
 
     if idx == len(areas_chosen):
         area = _select_new_area(session)
@@ -97,7 +116,10 @@ def _select_area(session, areas_chosen):
     return area
 
 
-def _select_new_area(session):
+def _select_new_area(session: sqlalchemy.orm.Session) -> models.Area:
+    """
+    Choose an area from user input.
+    """
 
     name = input('What is the name of the area? ')
 
@@ -113,7 +135,13 @@ def _select_new_area(session):
     return area
 
 
-def init_locations(session, characters):
+def init_locations(session: sqlalchemy.orm.Session,
+                   characters: List[models.Character]) -> CharacterGroups:
+    """
+    Initialize character locations and group them by area.
+
+    Returns: Character groups (list of all characters split into different groups).
+    """
 
     try:
         same_start = prompt_bool('Same starting location?', True)
@@ -133,6 +161,6 @@ def init_locations(session, characters):
 
     characters = sorted(characters, key=lambda char: char.location)
 
-    characters = [list(chars) for area, chars in itertools.groupby(characters, lambda char: char.location)]
+    character_groups = [list(chars) for area, chars in itertools.groupby(characters, lambda char: char.location)]
 
-    return characters
+    return character_groups

@@ -1,9 +1,14 @@
 import random
+from typing import List
+
+import sqlalchemy
 
 from sqlalchemy import Column, Integer, String, Boolean, Float, ForeignKey
 from sqlalchemy.orm import relationship
 
+from src.models import Character
 from src.models.base import Base
+from src.models.encounter import Encounter
 
 
 class Area(Base):
@@ -52,7 +57,12 @@ class Area(Base):
 
         return siblings
 
-    def process_encounter(self, session, characters):
+    def process_encounter(self,
+                          session: sqlalchemy.orm.Session,
+                          characters: List[Character]):
+        """
+        Find encounter and print it.
+        """
 
         try:
             encounter = self._choose_encounter()
@@ -61,7 +71,15 @@ class Area(Base):
         else:
             encounter.handle(session, characters)
 
-    def _choose_encounter(self):
+    def _choose_encounter(self) -> Encounter:
+        """
+        Select an encounter for this area.
+
+        Returns: Encounter.
+
+        Raises:
+            NoEncountersFoundException
+        """
 
         area = self
         while area and not area.encounters:
