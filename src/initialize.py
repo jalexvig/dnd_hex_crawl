@@ -11,7 +11,13 @@ from src.utils import prompt_bool, prompt_choices, MalformedInputException, Malf
 def init():
 
     session = init_db()
-    character_groups = init_characters(session)
+
+    while 1:
+        try:
+            character_groups = init_characters(session)
+        except MalformedInputException:
+            continue
+        break
 
     return character_groups, session
 
